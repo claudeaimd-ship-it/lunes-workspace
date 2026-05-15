@@ -50,7 +50,17 @@ Combinación de: arquitecto de infraestructura, ingeniero de datos, DevOps/SRE, 
 - Cliente: pymssql 2.3.13
 - **⚠️ Política: SOLO LECTURA.** No ejecutar INSERT, UPDATE, DELETE, DROP, ALTER ni ningún comando de escritura hasta que Polo autorice explícitamente el cambio de política.
 
-## CDM Dashboard — Checkpoint "CDM-test"
+### 🪪 GitHub
+- Cuenta: claudeaimd-ship-it
+- Token guardado en credenciales locales
+- Repositorio: lunes-workspace (https://github.com/claudeaimd-ship-it/lunes-workspace)
+
+## 📊 Telemetría Obligatoria
+- En CADA respuesta a Polo, incluir al final:
+  "API: [modelo usado] — Tokens: [X]K in / [Y]K out"
+- Al final de cada conversación, guardar resumen de tokens en memory/YYYY-MM-DD.md
+
+# CDM Dashboard — Checkpoint "CDM-test"
 - Creado para Héctor (Telegram) el 2026-05-05
 - Propósito: monitoreo de estatus PASS/FAIL de 4 máquinas (M01-M04)
 - Backend: FastAPI puerto 8002, frontend HTML+Chart.js, auto-refresh 5 min

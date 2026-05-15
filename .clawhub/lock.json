@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "mqtt": {
+      "version": "1.0.0",
+      "installedAt": 1777654603818
+    },
+    "mqtt-client-openclaw": {
+      "version": "1.2.2",
+      "installedAt": 1777654654146
+    },
+    "influxdb": {
+      "version": "1.0.0",
+      "installedAt": 1777654670956
+    },
+    "mssql": {
+      "version": "1.0.2",
+      "installedAt": 1777654687831
+    },
+    "markdown-converter": {
+      "version": "1.0.0",
+      "installedAt": 1777654718897
+    },
+    "fox-data-analyst": {
+      "version": "1.0.0",
+      "installedAt": 1777654922506
+    }
+  }
+}
