@@ -1,55 +1,26 @@
-# Logs
-*.log
-*.pid
-
-# Secrets
+# OpenClaw / runtime
+logs/
 .env
-.env.*
-*.pem
-*.key
-**/secrets/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-
-# Node
+*.local
+*.secret
 node_modules/
-npm-debug.log*
+.snap/
+.cache/
 
-# OS
+# Sistema
 .DS_Store
 Thumbs.db
-
-# IDEs
-.vscode/
-.idea/
 *.swp
 *.swo
+*~
+*.bak
+
+# Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Temp
 tmp/
 temp/
 *.tmp
-*.bak
-
-# Large binaries
-*.jpg
-*.jpeg
-*.png
-*.gif
-
-# OpenClaw internal
-.openclaw/
-
-# State files
-state/
-
-# Skills from npm
-skills/node_modules/
