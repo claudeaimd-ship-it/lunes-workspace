@@ -1,0 +1,548 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-15T19:07:05.334Z",
+  "entries": {
+    "memory:memory/2026-05-04.md:136:162": {
+      "key": "memory:memory/2026-05-04.md:136:162",
+      "path": "memory/2026-05-04.md",
+      "startLine": 136,
+      "endLine": 162,
+      "source": "memory",
+      "snippet": "- URL cambia cada reconexión: https://80fcee47cbf7d5.lhr.life → https://bc2e34c948bcc6.lhr.life → https://55228aa8845a4a.lhr.life - Polo reportó \"no tunnel here\" dos veces (frustrante para él) - Pendiente intentar Cloudflare Tunnel (URL fija) cuando Polo lo autorice ### URL actual (a 14:14 CST) https://55228aa8845a4a.lhr.life ## Mapeo de celdas (balanceadoras) ### Corrección importante - **TODAS** las BigDataBalancer (11-18) son de **Celda B** (usuarios: B11_MAZDA, B12_MAZDA, B15_MAZDA, B16_MAZDA, B17_MAZDA, B18_MAZDA) - **Celda A y C NO tienen balanceadoras** — no existen BigDataBalancer para ellas - Eso lo confirmó: (1) vista ModeloCeldaB tiene columnas para MAQUINA11-18, (2) los usuari",
+      "recallCount": 15,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 7.10755724310875,
+      "maxScore": 0.49964325726032255,
+      "firstRecalledAt": "2026-05-06T00:06:46.236Z",
+      "lastRecalledAt": "2026-05-15T13:16:28.414Z",
+      "queryHashes": [
+        "d1791b81fb28",
+        "bd8f65b0d197",
+        "eb24d3666363",
+        "1d5b1b75311d",
+        "821788a1b3eb",
+        "4d37d874b275",
+        "22f2e4139cf3",
+        "eb17b79daa7b",
+        "429a59e11921",
+        "afee332ee6ee",
+        "f235a2fcec10",
+        "f53782987759",
+        "f166b7229485",
+        "679878d2f6c9",
+        "49399527a526"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "80fcee47cbf7d5.lhr.life",
+        "bc2e34c948bcc6.lhr.life",
+        "55228aa8845a4a.lhr.life",
+        "11-18",
+        "b11-mazda",
+        "b12-mazda",
+        "b15-mazda",
+        "b16-mazda"
+      ]
+    },
+    "memory:memory/2026-05-04.md:95:120": {
+      "key": "memory:memory/2026-05-04.md:95:120",
+      "path": "memory/2026-05-04.md",
+      "startLine": 95,
+      "endLine": 120,
+      "source": "memory",
+      "snippet": "4. **Timeout de conexión** → login_timeout=5, timeout=10 en pymssql 5. **SIGKILL en execs largos** → los comandos que duran >30s mueren. Subí a ~4s usando exec con yieldMs ### Archivos creados - `~/dashboard/server.py` — Backend FastAPI en puerto 8000, endpoints: - `GET /api/trazabilidad` — datos paginados con filtros - `GET /api/trazabilidad/search` — búsqueda por código - `GET /api/trazabilidad/detail` — detalle de motor con balanceos + pruebas eléctricas - `~/dashboard/trazabilidad.html` — Frontend con navbar, filtros, column toggle, tabla paginada, modal de detalle ### Túnel público - Polo no podía acceder desde su red → túnel con **localhost.run** (serveo.net falló, cloudflared",
+      "recallCount": 14,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 6.568660208582877,
+      "maxScore": 0.4926661700010299,
+      "firstRecalledAt": "2026-05-06T00:06:46.236Z",
+      "lastRecalledAt": "2026-05-15T19:06:04.330Z",
+      "queryHashes": [
+        "d1791b81fb28",
+        "bd8f65b0d197",
+        "eb24d3666363",
+        "1d5b1b75311d",
+        "4d37d874b275",
+        "c9f85219dae5",
+        "eb17b79daa7b",
+        "429a59e11921",
+        "afee332ee6ee",
+        "f235a2fcec10",
+        "f53782987759",
+        "f166b7229485",
+        "49399527a526",
+        "0716c2846081"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-13",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "login-timeout",
+        "dashboard/server.py",
+        "api/trazabilidad",
+        "api/trazabilidad/search",
+        "api/trazabilidad/detail",
+        "dashboard/trazabilidad.html",
+        "localhost.run",
+        "serveo.net"
+      ]
+    },
+    "memory:memory/2026-05-04.md:1:44": {
+      "key": "memory:memory/2026-05-04.md:1:44",
+      "path": "memory/2026-05-04.md",
+      "startLine": 1,
+      "endLine": 44,
+      "source": "memory",
+      "snippet": "# 2026-05-04 ## Configuración de red (RasPi) Polo configuró la RasPi con **doble red**: - Red 1: acceso a internet - Red 2: comunicación con servidor local (172.24.217.240, latencia ~6ms) ## Personalidad / prompt engineering Polo definió que soy **Senior Engineer de Infraestructura y Datos**. Stack: Python (pandas, numpy, fastapi) | SQLite/PostgreSQL | Linux/Docker/systemd | HTML+CSS+JS vanilla. ### Principios 1. Todo reproducible: IaC, scripts sobre clics, documentación 2. Datos primero: modelar antes de codificar, validar calidad siempre 3. Seguridad: mínimo privilegio, secrets cifrados, logs de auditoría 4. Monitoreable: métricas en todo, dashboards, alertas proactivas 5. Escalable: st",
+      "recallCount": 10,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 4.559308248758315,
+      "maxScore": 0.5011758774518966,
+      "firstRecalledAt": "2026-05-06T00:06:46.236Z",
+      "lastRecalledAt": "2026-05-15T19:07:05.334Z",
+      "queryHashes": [
+        "d1791b81fb28",
+        "bd8f65b0d197",
+        "eb24d3666363",
+        "1d5b1b75311d",
+        "821788a1b3eb",
+        "90edc14bb610",
+        "679878d2f6c9",
+        "0cab62eb1b33",
+        "1068f599ed50",
+        "8a027b1115ba"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-14",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "configuración",
+        "172.24.217.240",
+        "sqlite/postgresql",
+        "linux/docker/systemd",
+        "red",
+        "raspi",
+        "polo",
+        "configuró"
+      ]
+    },
+    "memory:memory/2026-05-04.md:117:145": {
+      "key": "memory:memory/2026-05-04.md:117:145",
+      "path": "memory/2026-05-04.md",
+      "startLine": 117,
+      "endLine": 145,
+      "source": "memory",
+      "snippet": "- **pymssql con as_dict=True** devuelve dicts con keys = los alias del SELECT (no los nombres originales) - **Palabras reservadas SQL Server** hay que escaparlas con brackets Y usar aliases que no choquen - **localhost.run** es la opción más rápida para túneles públicos sin auth - Para túneles persistentes usar cloudflared (requiere login browser en setup) - Los execs de OpenClaw matan con SIGKILL por timeout (30s) — usar process(action=poll) o yieldMs para largas duraciones ## Túnel público (localhost.run) — auto-recuperación ### Problema - El dashboard se cae → `BindsTo` mata el túnel → systemd no lo reinicia por exit code 0 - Cada reconexión a localhost.run genera **URL nueva** (no fija",
+      "recallCount": 4,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1.8305936336517334,
+      "maxScore": 0.47565228343009947,
+      "firstRecalledAt": "2026-05-06T00:06:46.236Z",
+      "lastRecalledAt": "2026-05-15T13:21:24.813Z",
+      "queryHashes": [
+        "d1791b81fb28",
+        "bd8f65b0d197",
+        "f166b7229485",
+        "0cab62eb1b33"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-13",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "as-dict",
+        "localhost.run",
+        "auto-recuperación",
+        "pymssql",
+        "true",
+        "devuelve",
+        "dicts",
+        "keys"
+      ]
+    },
+    "memory:memory/2026-05-04.md:62:100": {
+      "key": "memory:memory/2026-05-04.md:62:100",
+      "path": "memory/2026-05-04.md",
+      "startLine": 62,
+      "endLine": 100,
+      "source": "memory",
+      "snippet": "3. Implementar: modular, manejo de errores, logging, documentación 4. Validar: unitarias, integración, edge cases, post-deploy 5. Iterar: feedback, optimizar cuellos de botella, refactorizar ### Formato de respuestas ## Problema ## Causa raíz ## Solución (con código) ## Prevención ### No hacer - Desplegar sin pruebas - Hardcodear credenciales - Ignorar errores silenciosamente - Asumir datos limpios sin validar - Decir \"está listo\" sin haber probado ## Rendimiento / optimización - Modelo actual: deepseek/deepseek-chat (DeepSeek V4 Flash vía alias) - Thinking: apagado - Polo notó latencia y preguntó por optimización — pendiente revisar. ## Dashboard de Trazabilidad (Machine_db) ### Cont",
+      "recallCount": 16,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 7.398541164398194,
+      "maxScore": 0.4851513534784317,
+      "firstRecalledAt": "2026-05-06T00:06:46.236Z",
+      "lastRecalledAt": "2026-05-15T19:07:05.334Z",
+      "queryHashes": [
+        "d1791b81fb28",
+        "bd8f65b0d197",
+        "eb24d3666363",
+        "1d5b1b75311d",
+        "821788a1b3eb",
+        "4d37d874b275",
+        "c9f85219dae5",
+        "22f2e4139cf3",
+        "eb17b79daa7b",
+        "429a59e11921",
+        "afee332ee6ee",
+        "f166b7229485",
+        "90edc14bb610",
+        "679878d2f6c9",
+        "1068f599ed50",
+        "8a027b1115ba"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "post-deploy",
+        "deepseek/deepseek-chat",
+        "machine-db",
+        "implementar",
+        "modular",
+        "manejo",
+        "errores",
+        "logging"
+      ]
+    },
+    "memory:memory/2026-05-04.md:34:75": {
+      "key": "memory:memory/2026-05-04.md:34:75",
+      "path": "memory/2026-05-04.md",
+      "startLine": 34,
+      "endLine": 75,
+      "source": "memory",
+      "snippet": "- Ignorar errores silenciosamente - Asumir datos limpios sin validar - Decir \"está listo\" sin haber probado ## Rendimiento / optimización - Modelo actual: deepseek/deepseek-chat (DeepSeek V4 Flash vía alias) - Thinking: apagado - Polo notó latencia y preguntó por optimización — pendiente revisar. # 2026-05-04 ## Configuración de red (RasPi) Polo configuró la RasPi con **doble red**: - Red 1: acceso a internet - Red 2: comunicación con servidor local (172.24.217.240, latencia ~6ms) ## Personalidad / prompt engineering Polo definió que soy **Senior Engineer de Infraestructura y Datos**. Stack: Python (pandas, numpy, fastapi) | SQLite/PostgreSQL | Linux/Docker/systemd | HTML+CSS+JS vanilla.",
+      "recallCount": 10,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 4.620854863524436,
+      "maxScore": 0.4854427278041839,
+      "firstRecalledAt": "2026-05-06T01:25:47.217Z",
+      "lastRecalledAt": "2026-05-15T19:07:05.334Z",
+      "queryHashes": [
+        "eb24d3666363",
+        "1d5b1b75311d",
+        "821788a1b3eb",
+        "eb17b79daa7b",
+        "429a59e11921",
+        "90edc14bb610",
+        "679878d2f6c9",
+        "0cab62eb1b33",
+        "1068f599ed50",
+        "8a027b1115ba"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-09",
+        "2026-05-14",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "configuración",
+        "deepseek/deepseek-chat",
+        "172.24.217.240",
+        "sqlite/postgresql",
+        "linux/docker/systemd",
+        "ignorar",
+        "errores",
+        "silenciosamente"
+      ]
+    },
+    "memory:memory/2026-05-05.md:1:17": {
+      "key": "memory:memory/2026-05-05.md:1:17",
+      "path": "memory/2026-05-05.md",
+      "startLine": 1,
+      "endLine": 17,
+      "source": "memory",
+      "snippet": "# 2026-05-05 ## CDM Dashboard (nuevo) - Héctor (Telegram) pidió dashboard de estatus de máquinas desde base CDM - BD: SQL Server 172.24.217.240, db=CDM, tablas: - PY_INOUT_M01-M04: datos PASS/FAIL por máquina - CDM_OP160.2: prueba de fugas (leak test) - Backend: FastAPI en ~/dashboard/cdm_server.py, puerto 8002 - Frontend: ~/dashboard/cdm_dashboard.html (servido como archivo estático) - Service systemd: cdm-dashboard.service (enable, restart=always) - Tunnel: autossh -> localhost.run, cdm-tunnel.service (BindsTo cdm-dashboard) - URL actual: https://4a12401db09611.lhr.life (cambia en cada reconexión) - Puerto 80 habilitado via socat (cdm-port80.service, 80->8002) para evitar firewalls -",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 0.5595244884490966,
+      "maxScore": 0.5595244884490966,
+      "firstRecalledAt": "2026-05-06T04:09:06.187Z",
+      "lastRecalledAt": "2026-05-06T04:09:06.187Z",
+      "queryHashes": [
+        "1d5b1b75311d"
+      ],
+      "recallDays": [
+        "2026-05-05"
+      ],
+      "conceptTags": [
+        "172.24.217.240",
+        "py-inout-m01-m04",
+        "pass/fail",
+        "cdm-op160.2",
+        "dashboard/cdm-server.py",
+        "dashboard/cdm-dashboard.html",
+        "cdm-dashboard.service",
+        "localhost.run"
+      ]
+    },
+    "memory:memory/2026-05-05.md:65:88": {
+      "key": "memory:memory/2026-05-05.md:65:88",
+      "path": "memory/2026-05-05.md",
+      "startLine": 65,
+      "endLine": 88,
+      "source": "memory",
+      "snippet": "- Columnas [3], [4] = leakage pressure (kPa), leakage value (Pa) — equivalentes a CDM_OP160.2 - Columna [5] descartada - Filtrar OLENO por: TLP52M-S002 y TLP56M-004 únicamente - Dashboard similar al CDM v2 pero con datos reales de esta tabla - ⚠️ NO conecta desde RasPi todavía (timeout) — probablemente necesita VPN o ruta diferente - Estado: EN ESPERA hasta que Héctor dé luz verde ## RecQ — Nueva tabla en CDM (22:47) - **Contexto:** Héctor mencionó otra BD (PTEXXX en 10.249.13.11, sa/sql2014) con tabla RECQ para trazabilidad más larga. No pude conectar (timeout), pero luego dijo que **ya copió la tabla REC_Q en la BD CDM** que ya conozco (172.24.217.240). - **Tabla:** `[CDM].[dbo].[REC_Q]`",
+      "recallCount": 9,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 4.2126655101776125,
+      "maxScore": 0.49249416589736933,
+      "firstRecalledAt": "2026-05-06T05:20:14.245Z",
+      "lastRecalledAt": "2026-05-13T15:39:18.868Z",
+      "queryHashes": [
+        "821788a1b3eb",
+        "c9f85219dae5",
+        "22f2e4139cf3",
+        "eb17b79daa7b",
+        "429a59e11921",
+        "afee332ee6ee",
+        "f235a2fcec10",
+        "f53782987759",
+        "f166b7229485"
+      ],
+      "recallDays": [
+        "2026-05-05",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-13"
+      ],
+      "conceptTags": [
+        "cdm-op160.2",
+        "tlp52m-s002",
+        "tlp56m-004",
+        "10.249.13.11",
+        "sa/sql2014",
+        "rec-q",
+        "172.24.217.240",
+        "columnas"
+      ]
+    },
+    "memory:memory/2026-05-05.md:24:48": {
+      "key": "memory:memory/2026-05-05.md:24:48",
+      "path": "memory/2026-05-05.md",
+      "startLine": 24,
+      "endLine": 48,
+      "source": "memory",
+      "snippet": "- Backend: FastAPI en ~/dashboard/cdm_server.py, puerto 8002 - Frontend: ~/dashboard/cdm_dashboard.html (servido como archivo estático) - Service systemd: cdm-dashboard.service (enable, restart=always) - Tunnel: autossh -> localhost.run, cdm-tunnel.service (BindsTo cdm-dashboard) - URL actual: https://4a12401db09611.lhr.life (cambia en cada reconexión) - Puerto 80 habilitado via socat (cdm-port80.service, 80->8002) para evitar firewalls - Acceso local desde JE-DA&A: http://192.168.45.32 (puerto 80) - Dashboard muestra: 4 tarjetas con PASS/FAIL, yield %, conteos 24h/8h/1h, gráfica de tendencia, barras de historial, tabla de fugas OP160 - Auto-refresh cada 5 minutos ## CDM v2 — Rediseño con a",
+      "recallCount": 4,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2.0250729888677594,
+      "maxScore": 0.558900997042656,
+      "firstRecalledAt": "2026-05-07T20:51:00.993Z",
+      "lastRecalledAt": "2026-05-15T19:06:04.330Z",
+      "queryHashes": [
+        "04a3e596a8e4",
+        "f53782987759",
+        "b460d11f19e9",
+        "0716c2846081"
+      ],
+      "recallDays": [
+        "2026-05-07",
+        "2026-05-11",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "dashboard/cdm-server.py",
+        "dashboard/cdm-dashboard.html",
+        "cdm-dashboard.service",
+        "localhost.run",
+        "cdm-tunnel.service",
+        "cdm-dashboard",
+        "4a12401db09611.lhr.life",
+        "cdm-port80.service"
+      ]
+    },
+    "memory:memory/2026-05-05.md:1:28": {
+      "key": "memory:memory/2026-05-05.md:1:28",
+      "path": "memory/2026-05-05.md",
+      "startLine": 1,
+      "endLine": 28,
+      "source": "memory",
+      "snippet": "# 2026-05-05 ## CDM Dashboard (nuevo) - Héctor (Telegram) pidió dashboard de estatus de máquinas desde base CDM - BD: SQL Server 172.24.217.240, db=CDM, tablas: - PY_INOUT_M01-M04: datos PASS/FAIL por máquina - CDM_OP160.2: prueba de fugas (leak test) - Backend: FastAPI en ~/dashboard/cdm_server.py, puerto 8002 - Frontend: ~/dashboard/cdm_dashboard.html (servido como archivo estático) - Service systemd: cdm-dashboard.service (enable, restart=always) - Tunnel: autossh -> localhost.run, cdm-tunnel.service (BindsTo cdm-dashboard) - URL actual: https://4a12401db09611.lhr.life (cambia en cada reconexión) - Puerto 80 habilitado via socat (cdm-port80.service, 80->8002) para evitar firewalls -",
+      "recallCount": 10,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 4.872096689045429,
+      "maxScore": 0.5635704860091209,
+      "firstRecalledAt": "2026-05-07T20:51:00.993Z",
+      "lastRecalledAt": "2026-05-15T19:06:04.330Z",
+      "queryHashes": [
+        "04a3e596a8e4",
+        "4d37d874b275",
+        "c9f85219dae5",
+        "22f2e4139cf3",
+        "f235a2fcec10",
+        "f53782987759",
+        "f166b7229485",
+        "b460d11f19e9",
+        "49399527a526",
+        "0716c2846081"
+      ],
+      "recallDays": [
+        "2026-05-07",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-13",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "172.24.217.240",
+        "py-inout-m01-m04",
+        "pass/fail",
+        "cdm-op160.2",
+        "dashboard/cdm-server.py",
+        "dashboard/cdm-dashboard.html",
+        "cdm-dashboard.service",
+        "localhost.run"
+      ]
+    },
+    "memory:memory/2026-05-06.md:23:45": {
+      "key": "memory:memory/2026-05-06.md:23:45",
+      "path": "memory/2026-05-06.md",
+      "startLine": 23,
+      "endLine": 45,
+      "source": "memory",
+      "snippet": "- **Transcripción de audio:** faster-whisper model small/base muy pesados para RasPi (OOM). Model tiny funciona pero transcripción es imprecisa. Alternativa: chunking o usar whisper.cpp en el futuro. - **Túnel inestable:** localhost.run se cayó múltiples veces. Se configuró `autossh` con ServerAliveInterval=15 y un script de túnel robusto con captura automática de URL. - **Chart.js desde CDN lento:** Se descargó localmente y se sirve desde el backend como archivo estático. - **Backend confusión:** Había dos backends (8001 server.py y 8002 cdm_server.py). Se consolidó todo en ~/cdm-dashboard/ con server.py. ### Arquitectura final - Service: `cdm-dashboard` (systemd, Restart=always, WorkingDi",
+      "recallCount": 5,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2.5264056310057637,
+      "maxScore": 0.5575861617922783,
+      "firstRecalledAt": "2026-05-07T20:51:00.993Z",
+      "lastRecalledAt": "2026-05-15T19:06:04.330Z",
+      "queryHashes": [
+        "04a3e596a8e4",
+        "4d37d874b275",
+        "b460d11f19e9",
+        "49399527a526",
+        "0716c2846081"
+      ],
+      "recallDays": [
+        "2026-05-07",
+        "2026-05-09",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "faster-whisper",
+        "small/base",
+        "whisper.cpp",
+        "localhost.run",
+        "chart.js",
+        "server.py",
+        "cdm-server.py",
+        "cdm-dashboard"
+      ]
+    },
+    "memory:memory/2026-05-05.md:41:69": {
+      "key": "memory:memory/2026-05-05.md:41:69",
+      "path": "memory/2026-05-05.md",
+      "startLine": 41,
+      "endLine": 69,
+      "source": "memory",
+      "snippet": "- Tabla de estadísticas: media, stdev, mediana, Q1, Q3, IQR, CV, varianza, rango, min, max, n - Histograma de distribución de frecuencias - Tabla de trazabilidad con todos los registros ## Problemas de red - Héctor usa PC empresarial en 172.24.220.77 (red Johnson Electric) - RasPi está en JE-DA&A (192.168.45.0/24) - **No hay ruta directa** entre ambas redes → no carga por IP local - Solución: Túnel localhost.run + autossh con systemd (cdm-tunnel.service) - Script tunnel-cdm.sh captura URL automáticamente y la guarda en tunnel_url.txt - La URL cambia cada reconexión de localhost.run ## Services systemd activos - **cdm-dashboard**: FastAPI puerto 8002, restart=always - **cdm-tun",
+      "recallCount": 7,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 3.4055586382746696,
+      "maxScore": 0.5513533234596252,
+      "firstRecalledAt": "2026-05-07T20:51:00.993Z",
+      "lastRecalledAt": "2026-05-15T13:16:19.876Z",
+      "queryHashes": [
+        "04a3e596a8e4",
+        "c9f85219dae5",
+        "22f2e4139cf3",
+        "afee332ee6ee",
+        "f235a2fcec10",
+        "f53782987759",
+        "b460d11f19e9"
+      ],
+      "recallDays": [
+        "2026-05-07",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "172.24.220.77",
+        "je-da",
+        "192.168.45.0/24",
+        "localhost.run",
+        "cdm-tunnel.service",
+        "tunnel-cdm.sh",
+        "tunnel-url.txt",
+        "cdm-dashboard"
+      ]
+    },
+    "memory:memory/2026-05-06.md:1:24": {
+      "key": "memory:memory/2026-05-06.md:1:24",
+      "path": "memory/2026-05-06.md",
+      "startLine": 1,
+      "endLine": 24,
+      "source": "memory",
+      "snippet": "# 2026-05-06 — CDM Dashboard & Transcripción ## Transcripción de audio (Héctor) - Transcripción de audio 9:34min usando faster-whisper (model tiny) en RasPi - El audio contenía instrucciones para nuevo dashboard desde otra BD (PTXX, tabla ERECC) - Transcripción parcial por limitaciones del modelo tiny, contenido ruidoso ## CDM Dashboard — Refactorización y estabilización - Héctor (Telegram) tiene el dashboard corriendo en puerto 8001 - Se refactorizó el frontend: HTML plano + JS modular + config centralizada - **Config en `config.js`** — título, máquinas, colores, rangos de tiempo, umbrales de yield sin tocar el HTML - **Gráficas en `chart-helpers.js`** — creación de Chart.js encapsulada -",
+      "recallCount": 9,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 4.470011520385742,
+      "maxScore": 0.5728806331753731,
+      "firstRecalledAt": "2026-05-07T20:51:00.993Z",
+      "lastRecalledAt": "2026-05-15T19:07:05.334Z",
+      "queryHashes": [
+        "04a3e596a8e4",
+        "4d37d874b275",
+        "22f2e4139cf3",
+        "f235a2fcec10",
+        "b460d11f19e9",
+        "49399527a526",
+        "0716c2846081",
+        "1068f599ed50",
+        "8a027b1115ba"
+      ],
+      "recallDays": [
+        "2026-05-07",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-15"
+      ],
+      "conceptTags": [
+        "faster-whisper",
+        "config.js",
+        "chart-helpers.js",
+        "chart.js",
+        "cdm",
+        "dashboard",
+        "transcripción",
+        "audio"
+      ]
+    }
+  }
+}

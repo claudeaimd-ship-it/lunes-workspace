@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧠 Neural Dashboard - OpenClaw</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0e17; color: #e0e0e0; overflow: hidden; height: 100vh; }
+
+    #app { display: flex; height: 100vh; }
+    #sidebar {
+      width: 320px; min-width: 320px; background: #111827; border-right: 1px solid #1f2937;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #graph-container { flex: 1; position: relative; background: #0a0e17; overflow: hidden; }
+    canvas { display: block; }
+
+    .sidebar-header { padding: 16px; border-bottom: 1px solid #1f2937; }
+    .sidebar-header h1 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .sidebar-header h1 span { color: #60a5fa; }
+    .sidebar-header .subtitle { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+    .agent-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .agent-card {
+      background: #1a2332; border-radius: 8px; padding: 12px; margin-bottom: 8px;
+      border: 1px solid #1f2937; cursor: pointer; transition: all 0.2s;
+    }
+    .agent-card:hover { border-color: #3b82f6; background: #1e293b; }
+    .agent-card.active { border-color: #60a5fa; background: #1e3a5f; }
+    .agent-card .agent-name { font-weight: 600; font-size: 14px; color: #f3f4f6; }
+    .agent-card .agent-meta { font-size: 11px; color: #9ca3af; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .agent-card .agent-meta span { background: #1f2937; padding: 2px 6px; border-radius: 4px; }
+    .agent-status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-active { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .status-idle { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+    .status-error { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+    /* Detail panel */
+    #detail-panel {
+      position: absolute; right: 16px; top: 16px; width: 400px;
+      background: rgba(17, 24, 39, 0.95); border: 1px solid #1f2937; border-radius: 12px;
+      padding: 16px; display: none; max-height: calc(100vh - 100px); overflow-y: auto;
+      backdrop-filter: blur(12px); z-index: 10;
+    }
+    #detail-panel h2 { font-size: 16px; margin-bottom: 12px; color: #f3f4f6; }
+    #detail-panel .close-btn {
+      float: right; background: none; border: none; color: #9ca3af;
+      font-size: 20px; cursor: pointer;
+    }
+    #detail-panel .close-btn:hover { color: #fff; }
+    .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1f2937; font-size: 13px; }
+    .detail-row .label { color: #6b7280; }
+    .detail-row .value { color: #e5e7eb; }
+
+    /* Session card inside detail panel */
+    .session-card {
+      background: #0d1117; border-radius: 8px; padding: 10px; margin-bottom: 6px;
+      border: 1px solid #1f2937; font-size: 12px;
+    }
+    .session-card .session-user {
+      font-weight: 600; color: #60a5fa; font-size: 13px;
+    }
+    .session-card .session-meta {
+      color: #9ca3af; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .session-card .session-meta span {
+      background: #1a2332; padding: 1px 5px; border-radius: 4px;
+    }
+    .session-card .session-channel {
+      display: inline-block;
+    }
+    .session-card .session-status-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px;
+    }
+
+    .log-entry { font-size: 11px; font-family: 'Courier New', monospace; background: #0d1117; padding: 4px 8px; border-radius: 4px; margin: 2px 0; color: #9ca3af; }
+
+    .memory-section { margin-top: 12px; }
+    .memory-file { background: #0d1117; border-radius: 6px; padding: 8px; margin-bottom: 6px; font-size: 11px; }
+    .memory-file .file-name { color: #60a5fa; font-weight: 600; }
+    .memory-file .file-preview { color: #9ca3af; margin-top: 4px; }
+
+    #graph-info {
+      position: absolute; bottom: 16px; left: 16px;
+      background: rgba(17, 24, 39, 0.85); border: 1px solid #1f2937; border-radius: 8px;
+      padding: 10px 14px; font-size: 12px; color: #9ca3af; backdrop-filter: blur(8px);
+    }
+    #graph-info strong { color: #60a5fa; }
+
+    #legend {
+      position: absolute; bottom: 16px; right: 16px;
+      background: rgba(17, 24, 39, 0.85); border: 1px solid #1f2937; border-radius: 8px;
+      padding: 10px 14px; font-size: 11px; backdrop-filter: blur(8px);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <h1>🧠 <span>Neural Dashboard</span></h1>
+        <div class="subtitle">OpenClaw Agent Network · Live</div>
+      </div>
+      <div class="agent-list" id="agent-list">
+        <div style="text-align:center;padding:20px;color:#6b7280;font-size:13px;">
+          Esperando datos del servidor...
+        </div>
+      </div>
+    </div>
+
+    <div id="graph-container">
+      <canvas id="graph-canvas"></canvas>
+      <div id="detail-panel"></div>
+      <div id="graph-info">
+        Agentes: <strong id="agent-count">0</strong> ·
+        Sesiones: <strong id="session-count">0</strong> ·
+        <span id="last-update" style="color:#6b7280;">—</span>
+      </div>
+      <div id="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#60a5fa;"></span> Agente activo</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Agente inactivo</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Error</div>
+        <div class="legend-item" style="margin-top:4px;border-top:1px solid #1f2937;padding-top:4px;">
+          <svg width="40" height="3"><line x1="0" y1="1.5" x2="40" y2="1.5" stroke="#60a5fa" stroke-width="1.5" opacity="0.5"/></svg>
+          Conexión entre agentes
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let agents = [];
+    let connections = [];
+    let memories = [];
+    let logs = {};
+    let agentsById = {};
+    let selectedAgentId = null;
+    let animFrame = null;
+    let time = 0;
+    let nodes = [];
+    let edges = [];
+
+    const canvas = document.getElementById('graph-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+      const container = document.getElementById('graph-container');
+      W = container.clientWidth;
+      H = container.clientHeight;
+      canvas.width = W;
+      canvas.height = H;
+    }
+    window.addEventListener('resize', resize);
+
+    function initPhysics() {
+      nodes = agents.map((a, i) => {
+        const angle = (2 * Math.PI * i) / agents.length + Math.random() * 0.1;
+        const radius = Math.min(W, H) * 0.3;
+        return {
+          id: a.agentId,
+          x: W/2 + Math.cos(angle) * radius,
+          y: H/2 + Math.sin(angle) * radius,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: 30 + Math.min(Math.log(a.totalTokens || 1) * 3, 20),
+          agent: a
+        };
+      });
+
+      edges = connections.map(c => {
+        const source = nodes.find(n => n.id === c.source);
+        const target = nodes.find(n => n.id === c.target);
+        return source && target ? { source, target, strength: c.strength, type: c.type } : null;
+      }).filter(Boolean);
+    }
+
+    function physicsStep() {
+      const repulsion = 8000;
+      const attraction = 0.001;
+      const damping = 0.85;
+      const centerForce = 0.015;
+      const cx = W / 2, cy = H / 2;
+
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        a.vx += (cx - a.x) * centerForce;
+        a.vy += (cy - a.y) * centerForce;
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          let dx = b.x - a.x;
+          let dy = b.y - a.y;
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+          const force = repulsion / (dist * dist);
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          a.vx -= fx;
+          a.vy -= fy;
+          b.vx += fx;
+          b.vy += fy;
+
+          const edge = edges.find(e =>
+            (e.source === a && e.target === b) || (e.source === b && e.target === a)
+          );
+          if (edge) {
+            const attractForce = dist * attraction * edge.strength;
+            a.vx += (dx / dist) * attractForce;
+            a.vy += (dy / dist) * attractForce;
+            b.vx -= (dx / dist) * attractForce;
+            b.vy -= (dy / dist) * attractForce;
+          }
+        }
+      }
+
+      for (const n of nodes) {
+        n.vx *= damping;
+        n.vy *= damping;
+        n.x += n.vx;
+        n.y += n.vy;
+        const margin = 60;
+        n.x = Math.max(margin, Math.min(W - margin, n.x));
+        n.y = Math.max(margin, Math.min(H - margin, n.y));
+      }
+    }
+
+    // --- Canvas click handler to select nodes ---
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      let found = null;
+      // Check nodes in reverse draw order (closest on top)
+      for (const n of nodes) {
+        const dx = mx - n.x;
+        const dy = my - n.y;
+        if (dx * dx + dy * dy <= (n.radius + 10) * (n.radius + 10)) {
+          found = n;
+          break;
+        }
+      }
+
+      if (found) {
+        selectedAgentId = found.id;
+        const agent = agents.find(a => a.agentId === found.id);
+        if (agent) showDetailPanel(agent);
+        updateSidebar();
+      }
+    });
+
+    function draw() {
+      time += 0.02;
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (let y = 0; y < H; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+
+      if (nodes.length === 0) return;
+
+      // Draw edges
+      for (const edge of edges) {
+        const dx = edge.target.x - edge.source.x;
+        const dy = edge.target.y - edge.source.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const pulse = 0.3 + 0.3 * Math.sin(time * 2 + dist * 0.01);
+        const alpha = 0.15 + pulse * 0.35;
+
+        ctx.beginPath();
+        ctx.moveTo(edge.source.x, edge.source.y);
+        ctx.lineTo(edge.target.x, edge.target.y);
+        ctx.strokeStyle = `rgba(96, 165, 250, ${alpha})`;
+        ctx.lineWidth = 1 + edge.strength * 3;
+        ctx.stroke();
+
+        if (edge.strength > 0.1) {
+          const particleCount = Math.max(1, Math.floor(edge.strength * 4));
+          for (let p = 0; p < particleCount; p++) {
+            const t = ((time * 0.5 + p / particleCount) % 1);
+            const px = edge.source.x + dx * t;
+            const py = edge.source.y + dy * t;
+            ctx.beginPath();
+            ctx.arc(px, py, 2 + Math.sin(time * 3 + p) * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(330, 100%, 70%, ${0.3 + t * 0.4})`;
+            ctx.fill();
+          }
+        }
+      }
+
+      // Draw nodes
+      for (const node of nodes) {
+        const a = node.agent;
+        const isSelected = selectedAgentId === a.agentId;
+
+        // Glow
+        const glow = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius * 2);
+        if (a.status === 'active') {
+          glow.addColorStop(0, 'rgba(96, 165, 250, 0.3)');
+          glow.addColorStop(0.5, 'rgba(96, 165, 250, 0.1)');
+        } else if (a.status === 'error') {
+          glow.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+          glow.addColorStop(0.5, 'rgba(239, 68, 68, 0.1)');
+        } else {
+          glow.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
+          glow.addColorStop(0.5, 'rgba(245, 158, 11, 0.05)');
+        }
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+
+        // Selection ring
+        if (isSelected) {
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+          ctx.lineWidth = 3;
+          ctx.setLineDash([5, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Node body
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+        const gradient = ctx.createRadialGradient(
+          node.x - node.radius * 0.3, node.y - node.radius * 0.3, 0,
+          node.x, node.y, node.radius
+        );
+        if (a.status === 'active') {
+          gradient.addColorStop(0, '#93c5fd');
+          gradient.addColorStop(0.5, '#3b82f6');
+          gradient.addColorStop(1, '#1d4ed8');
+        } else if (a.status === 'error') {
+          gradient.addColorStop(0, '#fca5a5');
+          gradient.addColorStop(0.5, '#ef4444');
+          gradient.addColorStop(1, '#b91c1c');
+        } else {
+          gradient.addColorStop(0, '#fcd34d');
+          gradient.addColorStop(0.5, '#f59e0b');
+          gradient.addColorStop(1, '#b45309');
+        }
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Emoji label
+        ctx.fillStyle = '#fff';
+        ctx.font = `${node.radius * 0.8}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(a.emoji, node.x, node.y);
+
+        // Name below
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textBaseline = 'top';
+        ctx.fillText(a.name, node.x, node.y + node.radius + 6);
+
+        // Session count badge
+        if (a.sessionCount > 0) {
+          const badgeR = 10;
+          ctx.beginPath();
+          ctx.arc(node.x + node.radius - 5, node.y - node.radius + 5, badgeR, 0, Math.PI * 2);
+          ctx.fillStyle = '#1f2937';
+          ctx.fill();
+          ctx.strokeStyle = '#374151';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#60a5fa';
+          ctx.font = 'bold 10px sans-serif';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(a.sessionCount, node.x + node.radius - 5, node.y - node.radius + 5);
+        }
+      }
+    }
+
+    function animate() {
+      physicsStep();
+      draw();
+      animFrame = requestAnimationFrame(animate);
+    }
+
+    // --- Show detail panel with user sessions ---
+    function showDetailPanel(agent) {
+      const panel = document.getElementById('detail-panel');
+
+      let html = `<button class="close-btn" onclick="closeDetail()">&times;</button>`;
+      html += `<h2>${agent.emoji} ${agent.name} <span style="font-size:12px;color:#9ca3af;">(${agent.agentId})</span></h2>`;
+
+      // Agent summary
+      html += `<div class="detail-row"><span class="label">Estado</span><span class="value">${
+        agent.status === 'active' ? '🟢 Activo' : agent.status === 'error' ? '🔴 Error' : '🟡 Inactivo'
+      }</span></div>`;
+      html += `<div class="detail-row"><span class="label">Canales</span><span class="value">${agent.channels.join(', ')}</span></div>`;
+      html += `<div class="detail-row"><span class="label">Sesiones</span><span class="value">${agent.sessionCount}</span></div>`;
+      html += `<div class="detail-row"><span class="label">Tokens totales</span><span class="value">${agent.totalTokens.toLocaleString()}</span></div>`;
+
+      // Sessions per user
+      html += `<h3 style="margin-top:16px;font-size:13px;color:#60a5fa;">💬 Sesiones activas</h3>`;
+
+      if (agent.sessions && agent.sessions.length > 0) {
+        // Group sessions by user
+        const byUser = {};
+        agent.sessions.forEach(s => {
+          const u = s.userName || s.userId || 'Desconocido';
+          if (!byUser[u]) byUser[u] = [];
+          byUser[u].push(s);
+        });
+
+        Object.entries(byUser).forEach(([userName, sessions]) => {
+          html += `<div style="margin-top:8px;border-left:2px solid #3b82f6;padding-left:8px;">`;
+          html += `<div style="font-weight:600;color:#f3f4f6;font-size:13px;margin-bottom:4px;">👤 ${userName}</div>`;
+
+          sessions.forEach(s => {
+            const statusDot = s.status === 'active' || s.status === 'running'
+              ? 'background:#22c55e;' : s.status === 'error'
+              ? 'background:#ef4444;' : 'background:#f59e0b;';
+            const channelIcon = s.channel === 'telegram' ? '📱' : s.channel === 'discord' ? '💬' : '🌐';
+
+            html += `<div class="session-card">
+              <div class="session-user">
+                <span class="session-status-dot" style="${statusDot}"></span>
+                ${channelIcon} ${s.channel}
+              </div>
+              <div class="session-meta">
+                <span>🆔 ${s.userId || '—'}</span>
+                <span>📊 ${s.tokensUsed.toLocaleString()} tokens</span>
+                <span>🤖 ${s.model}</span>
+                <span>🔑 ${s.sessionId ? s.sessionId.substring(0, 8) + '...' : '—'}</span>
+                <span style="width:100%;color:#6b7280;font-size:10px;margin-top:2px;">
+                  última actividad: ${new Date(s.lastActive).toLocaleString()}
+                </span>
+              </div>
+            </div>`;
+          });
+          html += `</div>`;
+        });
+      } else {
+        html += `<div style="color:#6b7280;font-size:12px;padding:8px 0;">Sin sesiones activas</div>`;
+      }
+
+      // Connected agents
+      const agentConns = connections.filter(c => c.source === agent.agentId || c.target === agent.agentId);
+      if (agentConns.length > 0) {
+        html += `<h3 style="margin-top:16px;font-size:13px;color:#60a5fa;">🔗 Conexiones</h3>`;
+        agentConns.forEach(c => {
+          const other = c.source === agent.agentId
+            ? agents.find(a => a.agentId === c.target)
+            : agents.find(a => a.agentId === c.source);
+          if (other) {
+            html += `<div class="detail-row" style="font-size:12px;">
+              <span class="label">↔ ${other.name}</span>
+              <span class="value" style="color:${c.strength > 0.5 ? '#22c55e' : '#f59e0b'}">
+                ${Math.round(c.strength * 100)}% intensidad
+              </span>
+            </div>`;
+          }
+        });
+      }
+
+      // Recent logs
+      html += `<h3 style="margin-top:16px;font-size:13px;color:#60a5fa;">📋 Logs recientes</h3>`;
+      const logKeys = Object.keys(logs);
+      if (logKeys.length > 0) {
+        logKeys.forEach(key => {
+          const entries = logs[key];
+          if (entries && entries.length > 0) {
+            entries.slice(-5).forEach(entry => {
+              html += `<div class="log-entry">[${key}] ${entry.text}</div>`;
+            });
+          }
+        });
+      } else {
+        html += `<div style="color:#6b7280;font-size:11px;padding:8px 0;">Sin logs disponibles</div>`;
+      }
+
+      // Memory
+      html += `<div class="memory-section">`;
+      html += `<h3 style="font-size:13px;color:#60a5fa;margin-bottom:6px;">📝 Memoria</h3>`;
+      if (memories.length > 0) {
+        memories.forEach(m => {
+          html += `<div class="memory-file">
+            <div class="file-name">📄 ${m.file}</div>
+            <div class="file-preview">${m.summary}</div>
+          </div>`;
+        });
+      } else {
+        html += `<div style="color:#6b7280;font-size:11px;padding:8px 0;">Sin archivos de memoria</div>`;
+      }
+      html += `</div>`;
+
+      panel.innerHTML = html;
+      panel.style.display = 'block';
+    }
+
+    window.closeDetail = function() {
+      document.getElementById('detail-panel').style.display = 'none';
+      selectedAgentId = null;
+      updateSidebar();
+    };
+
+    // --- Update sidebar ---
+    function updateSidebar() {
+      const container = document.getElementById('agent-list');
+      container.innerHTML = agents.map(a => {
+        const statusClass = a.status === 'active' ? 'status-active' : a.status === 'error' ? 'status-error' : 'status-idle';
+        const connCount = connections.filter(c => c.source === a.agentId || c.target === a.agentId).length;
+        return `
+          <div class="agent-card ${selectedAgentId === a.agentId ? 'active' : ''}"
+               onclick="selectAgent('${a.agentId}')">
+            <div class="agent-name">
+              <span class="agent-status ${statusClass}"></span>
+              ${a.emoji} ${a.name}
+            </div>
+            <div class="agent-meta">
+              <span>💬 ${a.sessionCount} sesiones</span>
+              <span>🔗 ${connCount}</span>
+              <span>📡 ${a.channels.join(', ')}</span>
+              <span>📊 ${a.totalTokens.toLocaleString()} tokens</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.selectAgent = function(id) {
+      selectedAgentId = id;
+      const agent = agents.find(a => a.agentId === id);
+      if (agent) {
+        showDetailPanel(agent);
+        updateSidebar();
+      }
+    };
+
+    // --- Socket events ---
+    socket.on('agents_update', (data) => {
+      agents = data.agents || [];
+      connections = data.connections || [];
+      logs = data.logs || {};
+      memories = data.memories || [];
+      agentsById = data.agentsById || {};
+
+      document.getElementById('agent-count').textContent = agents.length;
+      document.getElementById('session-count').textContent = agents.reduce((s, a) => s + a.sessionCount, 0);
+      document.getElementById('last-update').textContent = new Date(data.timestamp).toLocaleTimeString();
+
+      updateSidebar();
+      initPhysics();
+
+      // If we had a selected agent, refresh detail
+      if (selectedAgentId) {
+        const agent = agents.find(a => a.agentId === selectedAgentId);
+        if (agent) showDetailPanel(agent);
+        else selectedAgentId = null;
+      }
+    });
+
+    resize();
+    animate();
+  </script>
+</body>
+</html>

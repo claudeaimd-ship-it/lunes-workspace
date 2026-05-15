@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trazabilidad Machine_db</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root { --nav-bg: #1a2a3a; --accent: #ff8c00; }
+    body { background: #f0f2f5; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .navbar-custom { background: var(--nav-bg); padding: 0.5rem 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .navbar-custom .navbar-brand img { height: 40px; }
+    .stat-card { background: #fff; border-radius: 10px; padding: 0.75rem; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .stat-number { font-size: 1.4rem; font-weight: 700; }
+    .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-dashboard { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 1rem; overflow: hidden; }
+    .card-header-custom { background: var(--nav-bg); color: #fff; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.9rem; }
+    .card-body-custom { padding: 1.25rem; }
+    .filter-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 2px; }
+    .table-custom { font-size: 0.8rem; margin-bottom: 0; }
+    .table-custom th { background: #e9ecef; position: sticky; top: 0; z-index: 1; white-space: nowrap; padding: 0.4rem 0.5rem; }
+    .table-custom td { padding: 0.3rem 0.5rem; vertical-align: middle; }
+    .table-wrapper { max-height: calc(100vh - 350px); overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; }
+    .badge-pass { background: #28a745; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-fail { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-reject { background: #ffc107; color: #333; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .barcode-cell { font-family: 'Courier New', monospace; font-size: 0.75rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .barcode-cell:hover { color: var(--accent); }
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); z-index: 9999; display: none; justify-content: center; align-items: flex-start; padding-top: 120px; }
+    .loading-overlay.active { display: flex; }
+    .trace-detail { position: fixed; top: 0; right: 0; width: 520px; max-width: 100%; height: 100%; background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,0.2); z-index: 10000; display: none; overflow-y: auto; }
+    .trace-detail-header { background: var(--nav-bg); color: #fff; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .trace-detail-header h6 { margin: 0; font-size: 0.9rem; }
+    .query-time { font-size: 0.75rem; color: #888; }
+    .fade-in { animation: fadeIn 0.15s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .sql-box { background: #1e1e2e; color: #a6e22e; padding: 6px 10px; border-radius: 6px; font-family: monospace; font-size: 0.7rem; max-height: 120px; overflow: auto; white-space: pre-wrap; word-break: break-all; margin-top: 4px; display: none; }
+    .sql-box.show { display: block; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff8c00'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E" alt="">
+      Trazabilidad CFM
+    </a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item"><a class="nav-link active" href="/">📊 Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="text-center">
+    <div class="spinner-border text-warning" style="width:3rem;height:3rem;" role="status"></div>
+    <div class="mt-2 text-muted" style="font-size:0.9rem;">Cargando...</div>
+  </div>
+</div>
+
+<div class="container-fluid p-3">
+  <!-- Stats row removed -->
+
+  <div class="row g-2">
+    <!-- Filtros -->
+    <div class="col-md-3">
+      <div class="card-dashboard">
+        <div class="card-header-custom">🔎 Filtros</div>
+        <div class="card-body-custom">
+          <div class="mb-2">
+            <div class="filter-label">Celda</div>
+            <select id="cellSelect" class="form-select form-select-sm">
+              <option value="A">Celda A (BAL11-12)</option>
+              <option value="B" selected>Celda B (BAL15-16)</option>
+              <option value="C">Celda C (BAL17-18)</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <div class="filter-label">Periodo</div>
+            <div class="d-flex gap-1">
+              <select id="filterType" class="form-select form-select-sm" onchange="onFilterTypeChange()">
+                <option value="Day">Día</option>
+                <option value="Month">Mes</option>
+                <option value="Motor">Motor</option>
+                <option value="None">Sin filtro</option>
+              </select>
+              <input type="text" id="filterValue" class="form-control form-control-sm" placeholder="Ej: 20260504" value="20260504">
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="filter-label">Tamaño página</div>
+            <select id="pageSize" class="form-select form-select-sm">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <div class="filter-label">Estados</div>
+            <div class="d-flex flex-wrap gap-1">
+              <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="chkPASS" checked><label class="form-check-label" for="chkPASS">PASS</label></div>
+              <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="chkFAIL" checked><label class="form-check-label" for="chkFAIL">FAIL</label></div>
+              <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="chkREJECT" checked><label class="form-check-label" for="chkREJECT">REJECT</label></div>
+            </div>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-primary btn-sm flex-grow-1" id="btnApply" onclick="handleApply()">🔍 Aplicar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-dashboard">
+        <div class="card-header-custom">📋 Búsqueda rápida</div>
+        <div class="card-body-custom">
+          <div class="d-flex gap-1 mb-2">
+            <input type="text" id="searchCode" class="form-control form-control-sm" placeholder="Código motor / fan / barcode...">
+            <select id="searchType" class="form-select form-select-sm" style="max-width:90px;">
+              <option value="motor">Motor</option>
+              <option value="fan">Fan</option>
+              <option value="barcode">Barcode</option>
+            </select>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-primary btn-sm flex-grow-1" id="btnSearch" onclick="handleSearch()">🔍 Buscar</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="clearSearch()">✕ Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-dashboard">
+        <div class="card-header-custom">📐 Columnas visibles</div>
+        <div class="card-body-custom p-2" id="colToggles"></div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="col-md-9">
+      <div class="card-dashboard">
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+          <span id="resultsInfo">Listo</span>
+          <span class="query-time" id="queryTime"></span>
+        </div>
+        <div class="card-body-custom p-2" id="tableWrapper">
+          <!-- SQL box (hidden by default) -->
+          <div class="sql-box" id="sqlBox">
+            <div class="d-flex justify-content-between">
+              <strong style="color:#fff;">SQL ejecutado</strong>
+              <span style="cursor:pointer;color:#888;" onclick="document.getElementById('sqlBox').classList.remove('show')">✕</span>
+            </div>
+            <code id="sqlText"></code>
+          </div>
+          <div class="table-wrapper">
+            <table class="table table-custom">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody">
+                <tr><td colspan="20" class="text-center text-muted py-3">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center pt-1" id="paginationBar">
+            <small class="text-muted" id="paginationInfo">Sin datos</small>
+            <div id="pageNumbers"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trace Detail Panel -->
+<div class="trace-detail" id="traceDetail">
+  <div class="trace-detail-header">
+    <h6>🔍 <span id="traceTitle">Detalle</span></h6>
+    <button class="btn btn-sm btn-outline-light" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="p-3" id="traceContent">
+    <div class="text-center text-muted py-4">Selecciona un 🔍 para ver detalle</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const ALL_COLUMNS = [
+  {key:'TIME',label:'Fecha'},
+  {key:'CELL',label:'Celda'},
+  {key:'FinalStatus',label:'Status'},
+  {key:'BalUser',label:'Balanceadora'},
+  {key:'MotorCode',label:'Motor Code'},
+  {key:'FanCode',label:'Fan Code'},
+  {key:'VOLTAGE',label:'Voltaje'},
+  {key:'BalCurrent',label:'Corriente'},
+  {key:'SPEED',label:'Velocidad'},
+  {key:'STATIC',label:'Static'},
+  {key:'StaticAngle',label:'St. Angle'},
+  {key:'COUPLE',label:'Couple'},
+  {key:'CoupleAngle',label:'Cp. Angle'},
+  {key:'UNBALANCE',label:'Unbalance'},
+  {key:'Plane1',label:'Plane 1'},
+  {key:'UnbalPlan2',label:'U. Plane 2'},
+  {key:'Plane2',label:'Plane 2'},
+  {key:'BalancingSpeed',label:'Bal. Speed'},
+  {key:'LeftBlade',label:'L Blade'},
+  {key:'LeftRadius',label:'L Radius'},
+  {key:'LeftClip',label:'L Clip'},
+  {key:'RightBlade',label:'R Blade'},
+  {key:'RightRadius',label:'R Radius'},
+  {key:'RightClip',label:'R Clip'},
+  {key:'CycleTime',label:'Cycle Time'}
+];
+let visibleCols = ['TIME','CELL','FinalStatus','BalUser','MotorCode','FanCode'];
+let currentPage = 1, totalRecords = 0, searchActive = false, searchParams = null, isDetailOpen = false;
+let _loading = false; // anti-sat
+
+function showLoading(on){$(on?'loadingOverlay':'loadingOverlay').classList.toggle('active',on);}
+
+function onFilterTypeChange(){
+  const t=$('filterType').value, i=$('filterValue');
+  if(t==='Day')i.placeholder='Ej: 20260504';else if(t==='Month')i.placeholder='Ej: 202605';else if(t==='Motor')i.placeholder='0126043062035';else i.placeholder='';
+  i.disabled = (t==='None');
+}
+
+// ===== Anti-saturación: solo se ejecuta al hacer clic =====
+// No hay auto-refresh, no hay onchange que dispare consultas.
+// pageSize cambio manual solo actualiza visual, no consulta.
+
+async function handleApply(){
+  if(_loading) return; // ya hay una consulta en curso
+  _loading = true;
+  const btn = $('btnApply');
+  btn.disabled = true; btn.innerHTML = '⏳ Consultando...';
+  await loadData();
+  btn.disabled = false; btn.innerHTML = '🔍 Aplicar';
+  _loading = false;
+}
+
+async function handleSearch(){
+  if(_loading) return;
+  _loading = true;
+  const btn = $('btnSearch');
+  btn.disabled = true; btn.innerHTML = '⏳ Buscando...';
+  await searchByCode();
+  btn.disabled = false; btn.innerHTML = '🔍 Buscar';
+  _loading = false;
+}
+
+function getParams(){
+  const cl=[],s=[],cells=$('cellSelect').value;
+  if(cells)cl.push(cells);else cl.push('A');
+  if($('chkPASS').checked)s.push('PASS');if($('chkFAIL').checked)s.push('FAIL');if($('chkREJECT').checked)s.push('REJECT');
+  const ft=$('filterType').value,fv=$('filterValue').value.trim();
+  return {cells:cl.join(','),statuses:s.join(','),filterType:ft,fv:fv,pageSize:parseInt($('pageSize').value)};
+}
+
+function updateVisibleCols(){
+  visibleCols=[];
+  document.querySelectorAll('#colToggles .form-check-input').forEach(c=>{if(c.checked)visibleCols.push(c.value);});
+  renderTable();
+}
+
+function initColToggles(){
+  $('colToggles').innerHTML='';
+  const sel=document.createElement('div');sel.className='d-flex gap-2 mb-1';
+  sel.innerHTML='<button class="btn btn-sm btn-outline-primary py-0" onclick="toggleAllCols(true)">All</button><button class="btn btn-sm btn-outline-secondary py-0" onclick="toggleAllCols(false)">None</button>';
+  $('colToggles').appendChild(sel);
+  ALL_COLUMNS.forEach(col=>{
+    const d=document.createElement('div');d.className='form-check form-check-inline';
+    d.innerHTML='<input class="form-check-input" type="checkbox" id="col_'+col.key+'" value="'+col.key+'" '+(visibleCols.includes(col.key)?'checked':'')+' onchange="updateVisibleCols()"><label class="form-check-label" for="col_'+col.key+'">'+col.label+'</label>';
+    $('colToggles').appendChild(d);
+  });
+}
+
+function toggleAllCols(on){document.querySelectorAll('#colToggles .form-check-input').forEach(c=>c.checked=on);updateVisibleCols();}
+
+function fmtTime(t){if(!t)return'--';const s=String(t);if(s.length===14)return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8)+' '+s.slice(8,10)+':'+s.slice(10,12);return s;}
+function fmtNum(n){if(n===null||n===undefined||n==='')return'--';const f=parseFloat(n);return isNaN(f)?n:f.toFixed(2);}
+function statusBadge(s){if(!s)return'<span class="badge bg-secondary">--</span>';const u=s.toUpperCase();if(u.includes('PASS'))return'<span class="badge-pass">PASS</span>';if(u.includes('FAIL'))return'<span class="badge-fail">FAIL</span>';return'<span class="badge-reject">REJECT</span>';}
+function trunc(s,l){return String(s).length>l?String(s).substring(0,l)+'…':String(s);}
+
+function showSQL(sql){
+  const box=$('sqlBox');
+  $('sqlText').textContent=sql;
+  box.classList.add('show');
+}
+
+function renderTable(){
+  const visible=getVisibleColumns();
+  let thead='<tr>';visible.forEach(col=>{thead+='<th>'+col.label+'</th>';});thead+='<th style="background:#e67e22;">🔍</th></tr>';
+  $('tableHead').innerHTML=thead;
+
+  const rows = window._tableData || [];
+  if(!rows.length){
+    $('tableBody').innerHTML='<tr><td colspan="20" class="text-center text-muted py-3">'+(searchActive?'No se encontraron resultados':'Selecciona filtros y aplica')+'</td></tr>';
+    return;
+  }
+  let tbody='';
+  rows.forEach(row=>{
+    tbody+='<tr>';
+    visible.forEach(col=>{
+      const val=row[col.key]!==undefined?row[col.key]:'--';
+      if(col.key==='TIME')tbody+='<td>'+fmtTime(val)+'</td>';
+      else if(col.key==='FinalStatus')tbody+='<td>'+statusBadge(val)+'</td>';
+      else if(['VOLTAGE','BalCurrent','SPEED','STATIC','StaticAngle','COUPLE','CoupleAngle','UNBALANCE','Plane1','UnbalPlan2','Plane2','BalancingSpeed','LeftBlade','LeftRadius','LeftClip','RightBlade','RightRadius','RightClip','CycleTime'].includes(col.key))tbody+='<td>'+fmtNum(val)+'</td>';
+      else if(['MotorCode','FanCode'].includes(col.key))tbody+='<td class="barcode-cell" title="'+val+'">'+trunc(val,22)+'</td>';
+      else tbody+='<td>'+(val||'--')+'</td>';
+    });
+    const mc=(row.MotorCode||'').replace(/'/g,"\\'");
+    tbody+='<td>'+ (mc?'<button class="btn btn-sm btn-outline-warning py-0" onclick="showTraceDetail(\''+mc+'\')">🔍</button>':'') +'</td>';
+    tbody+='</tr>';
+  });
+  $('tableBody').innerHTML=tbody;
+}
+
+function getVisibleColumns(){return ALL_COLUMNS.filter(c=>visibleCols.includes(c.key));}
+
+function updatePagination(){
+  if(searchActive && searchParams?.type==='barcode'){ $('paginationInfo').textContent=totalRecords+' registros'; $('pageNumbers').innerHTML=''; return; }
+  const ps=parseInt($('pageSize').value);
+  const tp=Math.max(1,Math.ceil(totalRecords/ps));
+  const from=(currentPage-1)*ps+1,to=Math.min(currentPage*ps,totalRecords);
+  $('paginationInfo').textContent=totalRecords===0?'Sin datos':`Pág ${currentPage}/${tp} (${from}-${to} de ${totalRecords})`;
+
+  let html='<button class="btn btn-outline-primary btn-sm py-0" onclick="goPage(1)" '+(currentPage<=1?'disabled':'')+'>&laquo;</button>';
+  html+='<button class="btn btn-outline-primary btn-sm py-0" onclick="goPage('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+'>&lsaquo;</button>';
+  const mv=5,sp=Math.max(1,currentPage-Math.floor(mv/2)),ep=Math.min(tp,sp+mv-1);
+  for(let i=sp;i<=ep;i++)html+='<button class="btn btn-sm py-0 '+(i===currentPage?'btn-primary':'btn-outline-primary')+'" onclick="goPage('+i+')">'+i+'</button>';
+  html+='<button class="btn btn-outline-primary btn-sm py-0" onclick="goPage('+(currentPage+1)+')" '+(currentPage>=tp?'disabled':'')+'>&rsaquo;</button>';
+  html+='<button class="btn btn-outline-primary btn-sm py-0" onclick="goPage('+tp+')" '+(currentPage>=tp?'disabled':'')+'>&raquo;</button>';
+  $('pageNumbers').innerHTML=html;
+  $('resultsInfo').textContent=totalRecords+' records';
+}
+
+async function goPage(pg){
+  if(_loading) return;
+  if(pg<1||pg>Math.ceil(totalRecords/parseInt($('pageSize').value)))return;
+  currentPage=pg;
+  if(searchActive) await loadSearchPage();
+  else await loadDataPage();
+}
+
+async function loadSearchPage(){
+  showLoading(true);
+  const ps=parseInt($('pageSize').value);
+  try{
+    const p=new URLSearchParams();p.set('code',searchParams.code);p.set('type',searchParams.type);p.set('limit',String(currentPage*ps));
+    const url='api/trazabilidad/search?'+p.toString();
+    const r=await fetch(url);const j=await r.json();
+    totalRecords=j.total;window._tableData=j.data.slice((currentPage-1)*ps,currentPage*ps);
+    renderTable();updatePagination();
+  }catch(e){window._tableData=[];totalRecords=0;renderTable();updatePagination();}
+  showLoading(false);
+}
+
+async function loadDataPage(){
+  showLoading(true);
+  const p=getParams();
+  try{
+    let url=`api/trazabilidad?cells=${p.cells}&statuses=${p.statuses}&page=${currentPage}&pageSize=${p.pageSize}`;
+    if(p.filterType && p.filterType!=='None') url+=`&filterType=${p.filterType}&filterValue=${p.fv}`;
+    const t0=performance.now();const r=await fetch(url);const j=await r.json();
+    const elapsed=((performance.now()-t0)/1000).toFixed(2);
+    $('queryTime').textContent=j.total+' en '+elapsed+'s';
+    if(j.sql) showSQL(j.sql);
+    totalRecords=j.total;window._tableData=j.data;
+    renderTable();updatePagination();
+  }catch(e){window._tableData=[];totalRecords=0;renderTable();updatePagination();}
+  showLoading(false);
+}
+
+async function loadData(){
+  currentPage=1;searchActive=false;searchParams=null;closeDetail();
+  await loadDataPage();
+}
+
+async function searchByCode(){
+  const code=$('searchCode').value.trim(),st=$('searchType').value;
+  if(!code)return;showLoading(true);currentPage=1;closeDetail();
+  searchActive=true;searchParams={code,type:st};
+  try{
+    const p=new URLSearchParams();p.set('code',code);p.set('type',st);p.set('limit','200');
+    const t0=performance.now();const r=await fetch('api/trazabilidad/search?'+p.toString());const j=await r.json();
+    const elapsed=((performance.now()-t0)/1000).toFixed(2);
+    $('queryTime').textContent=j.total+' en '+elapsed+'s';
+    if(j.sql) showSQL(j.sql);
+    const ps=parseInt($('pageSize').value);
+    totalRecords=j.total;window._tableData=j.data.slice(0,ps);
+    renderTable();updatePagination();
+    if(j.total===1 && j.data[0]?.MotorCode)showTraceDetail(j.data[0].MotorCode);
+  }catch(e){window._tableData=[];totalRecords=0;renderTable();updatePagination();alert('Error en búsqueda');}
+  showLoading(false);
+}
+
+function clearSearch(){$('searchCode').value='';closeDetail();window._tableData=[];totalRecords=0;renderTable();updatePagination();}
+
+function closeDetail(){isDetailOpen=false;$('traceDetail').style.display='none';}
+
+async function showTraceDetail(motorCode){
+  if(!motorCode)return;isDetailOpen=true;
+  $('traceTitle').textContent=motorCode;$('traceDetail').style.display='block';
+  $('traceContent').innerHTML='<div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div> Cargando...</div>';
+  try{
+    const t0=performance.now();const r=await fetch('api/trazabilidad/detail?motorCode='+encodeURIComponent(motorCode));
+    const j=await r.json();const elapsed=((performance.now()-t0)/1000).toFixed(2);
+    let html='<div style="font-size:0.78rem;color:#888;">⏱ '+elapsed+'s</div><div class="row g-2">';
+    html+='<div class="col-md-6"><h6 class="fw-bold">📦 Info Motor</h6><table class="table table-sm table-bordered">';
+    html+='<tr><td><strong>Motor Code</strong></td><td style="font-family:monospace;font-size:0.78rem;">'+motorCode+'</td></tr>';
+    if(j.motorInfo)for(const[k,v]of Object.entries(j.motorInfo))html+='<tr><td><strong>'+k+'</strong></td><td>'+(v||'--')+'</td></tr>';
+    html+='</table></div>';
+    if(j.balances&&j.balances.length){
+      html+='<div class="col-md-6"><h6 class="fw-bold">⚖️ Balanceos</h6><div style="max-height:200px;overflow-y:auto;"><table class="table table-sm table-bordered"><thead><tr><th>Fecha</th><th>Bal</th><th>Status</th><th>S</th><th>C</th></tr></thead><tbody>';
+      j.balances.forEach(b=>{html+='<tr><td>'+(b.TIME?fmtTime(b.TIME):'--')+'</td><td>'+(b.BalUser||'--')+'</td><td>'+statusBadge(b.FinalStatus)+'</td><td>'+fmtNum(b.STATIC)+'</td><td>'+fmtNum(b.COUPLE)+'</td></tr>';});
+      html+='</tbody></table></div></div>';
+    }
+    html+='</div>';
+    if(j.electricTests&&j.electricTests.length){
+      html+='<div class="mt-2"><h6 class="fw-bold">⚡ Pruebas Eléctricas</h6><div style="max-height:250px;overflow-y:auto;"><table class="table table-sm table-bordered"><thead><tr><th>Fecha</th><th>Barcode</th><th>P/F</th><th>V</th><th>Tq1</th><th>Cur1</th></tr></thead><tbody>';
+      j.electricTests.forEach(e=>{html+='<tr><td>'+(e.fecha_hora||'--')+'</td><td class="barcode-cell" style="max-width:130px;">'+trunc(e.BarCode||e.PrintLabel||'--',18)+'</td><td>'+statusBadge(e.P_F)+'</td><td>'+(e.Voltage_V||'--')+'</td><td>'+(e.Tq1||'--')+'</td><td>'+(e.Cur1||'--')+'</td></tr>';});
+      html+='</tbody></table></div></div>';
+    }
+    $('traceContent').innerHTML=html;
+  }catch(e){$('traceContent').innerHTML='<div class="alert alert-danger py-1" style="font-size:0.85rem;">Error: '+e.message+'</div>';}
+}
+
+initColToggles();
+// No cargar datos automáticamente - esperar a que el usuario haga clic
+totalRecords=0;window._tableData=[];
+renderTable();
+updatePagination();
+$('resultsInfo').textContent='Usa "Aplicar" para consultar';
+</script>
+</body>
+</html>
